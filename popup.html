@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>股價追蹤器</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <div>
+          <p class="eyebrow">LIVE QUOTE</p>
+          <div class="title-row">
+            <h1>股價追蹤器</h1>
+            <span class="title-updated">更新 <strong id="updatedAt">—</strong></span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="settings-toggle" id="settingsToggle" type="button" aria-label="開啟設定" aria-expanded="false" title="設定">⚙</button>
+          <span class="status" id="status" data-state="loading">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="statusText">連線中</span>
+          </span>
+        </div>
+      </header>
+
+      <section class="settings-panel" id="settingsPanel" hidden>
+        <label for="stockSite">點擊股票時開啟</label>
+        <select id="stockSite">
+          <option value="yahoo">Yahoo 股市</option>
+          <option value="wantgoo">玩股網</option>
+        </select>
+        <p>玩股網僅用於台股，其他市場會自動改用 Yahoo。</p>
+        <label class="page-name-label" for="pageName">目前分頁名稱（最多 3 字）</label>
+        <input id="pageName" type="text" placeholder="留空顯示頁碼" autocomplete="off" />
+      </section>
+
+      <form id="symbolForm" autocomplete="off">
+        <label for="symbol">股票代號</label>
+        <div class="input-row">
+          <input
+            id="symbol"
+            name="symbol"
+            type="text"
+            value="2330.TW"
+            placeholder="例如 台積電、2330 或 AAPL"
+            spellcheck="false"
+            maxlength="20"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="searchResults"
+            aria-expanded="false"
+            required
+          />
+          <button class="add-button" type="submit" aria-label="加入股票" title="加入股票">+</button>
+        </div>
+        <div class="search-results" id="searchResults" role="listbox" hidden></div>
+        <p class="hint">可輸入中文名稱或台股代號，系統會自動補上交易所後綴</p>
+      </form>
+
+      <nav class="page-bar" aria-label="追蹤清單分頁">
+        <div class="page-tabs" id="pageTabs" role="tablist"></div>
+        <button class="page-add" id="addPage" type="button" aria-label="新增分頁" title="新增分頁">+</button>
+      </nav>
+
+      <div class="quote-list" id="quoteList" aria-live="polite"></div>
+
+      <template id="quoteTemplate">
+        <section class="quote-card" aria-busy="true" draggable="true" role="link" tabindex="0" title="點擊查看股票頁，拖曳可調整順序">
+          <div class="quote-heading">
+            <h2><span class="quote-symbol">—</span> <span class="quote-name"></span></h2>
+            <div class="quote-actions">
+              <button class="remove" data-action="remove" type="button" aria-label="移除追蹤" title="移除追蹤">−</button>
+              <button class="refresh" data-action="refresh" type="button" aria-label="立即更新" title="立即更新">↻</button>
+            </div>
+          </div>
+          <div class="quote-values">
+            <div class="price-row">
+              <span class="currency"></span>
+              <strong class="price">—</strong>
+            </div>
+            <svg class="mini-chart" viewBox="0 0 92 34" role="img" aria-label="近期一分鐘 K 線與成交量">
+              <title>近期一分鐘 K 線與成交量</title>
+              <g class="chart-content"></g>
+            </svg>
+            <p class="change neutral">—</p>
+          </div>
+        </section>
+      </template>
+
+      <p class="error" id="error" role="alert" hidden></p>
+      <footer>每 5 秒自動更新 · 報價 Yahoo Finance · 名稱 TWSE／TPEx</footer>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

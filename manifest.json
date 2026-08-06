@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "5 秒股價追蹤器",
+  "version": "1.0.0",
+  "description": "每 5 秒更新一次指定股票的即時報價。",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://query1.finance.yahoo.com/*",
+    "https://query2.finance.yahoo.com/*",
+    "https://openapi.twse.com.tw/*",
+    "https://www.tpex.org.tw/*"
+  ],
+  "action": {
+    "default_title": "股價追蹤器",
+    "default_popup": "popup.html"
+  }
+}
