@@ -91,6 +91,83 @@ header,
   text-transform: none;
 }
 
+.sync-section {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid #2a344d;
+}
+
+.settings-panel .sync-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.sync-toggle span,
+.sync-toggle strong,
+.sync-toggle small {
+  display: block;
+}
+
+.sync-toggle strong {
+  color: #d9e0ee;
+  font-size: 12px;
+}
+
+.sync-toggle small {
+  margin-top: 2px;
+  color: #6f7d9d;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.settings-panel .sync-toggle input {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  flex: 0 0 16px;
+  padding: 0;
+  accent-color: #44e1af;
+}
+
+.settings-panel .sync-status {
+  margin-top: 8px;
+  color: #8fa0bb;
+}
+
+.settings-panel .sync-status.success {
+  color: #44e1af;
+}
+
+.settings-panel .sync-status.error {
+  color: #ff8793;
+}
+
+.sync-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.sync-actions button {
+  padding: 7px 4px;
+  border: 1px solid #34405c;
+  background: #18223a;
+  color: #b9c5da;
+  font-size: 10px;
+}
+
+.sync-actions button:hover {
+  border-color: #44e1af;
+  background: #1b2c42;
+  color: #e4fff6;
+  filter: none;
+}
+
 .settings-panel select:focus {
   border-color: #44e1af;
 }

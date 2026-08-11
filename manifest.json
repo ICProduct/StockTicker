@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "5 秒股價追蹤器",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "每 5 秒更新一次指定股票的即時報價。",
   "permissions": ["storage"],
   "host_permissions": [

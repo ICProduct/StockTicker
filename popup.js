@@ -1,6 +1,11 @@
 const UPDATE_INTERVAL_MS = 5_000;
 const DEFAULT_SYMBOL = "2330.TW";
 const LISTINGS_CACHE_MS = 24 * 60 * 60 * 1_000;
+const SYNC_META_KEY = "stockticker.sync.meta";
+const SYNC_CHUNK_PREFIX = "stockticker.sync.chunk";
+const MAX_IMPORT_BYTES = 1024 * 1024;
+const MAX_SYNC_SNAPSHOT_BYTES = 45_000;
+const portableStore = globalThis.StockTickerPortable;
 
 const elements = {
   form: document.querySelector("#symbolForm"),
@@ -14,6 +19,12 @@ const elements = {
   settingsPanel: document.querySelector("#settingsPanel"),
   stockSite: document.querySelector("#stockSite"),
   pageName: document.querySelector("#pageName"),
+  syncEnabled: document.querySelector("#syncEnabled"),
+  syncStatus: document.querySelector("#syncStatus"),
+  syncNow: document.querySelector("#syncNow"),
+  exportData: document.querySelector("#exportData"),
+  importData: document.querySelector("#importData"),
+  importFile: document.querySelector("#importFile"),
   updatedAt: document.querySelector("#updatedAt"),
   status: document.querySelector("#status"),
   statusText: document.querySelector("#statusText"),
@@ -34,6 +45,14 @@ let draggedSymbol = "";
 let dragBlocked = false;
 let suppressCardClick = false;
 let preferredSite = "yahoo";
+let syncEnabled = false;
+let syncJoined = false;
+let portableUpdatedAt = 0;
+let portableDeviceId = "";
+let applyingRemoteState = false;
+let syncWriteChain = Promise.resolve();
+let syncWriteTimer = null;
+let pendingSyncWrite = null;
 const activeRequests = new Map();
 const quoteCards = new Map();
 
@@ -326,8 +345,268 @@ async function searchSymbols(query) {
   }
 }
 
-async function saveTrackedQuotes() {
-  await chrome.storage.local.set({ trackedQuotes, quotePages, currentPageId, pageNames });
+function getPortableData() {
+  return portableStore.normalizePortableData({
+    trackedQuotes,
+    quotePages,
+    currentPageId,
+    pageNames,
+    preferredSite
+  });
+}
+
+async function saveTrackedQuotes({ touch = true, queueSync = true } = {}) {
+  if (touch) portableUpdatedAt = Date.now();
+  await chrome.storage.local.set({
+    trackedQuotes,
+    quotePages,
+    currentPageId,
+    pageNames,
+    preferredSite,
+    portableUpdatedAt,
+    portableDeviceId,
+    syncEnabled,
+    syncJoined
+  });
+  if (touch && queueSync && syncEnabled && !applyingRemoteState) queuePortableSync();
+}
+
+function setSyncStatus(message, state = "") {
+  elements.syncStatus.textContent = message;
+  elements.syncStatus.className = `sync-status${state ? ` ${state}` : ""}`;
+}
+
+function setSyncBusy(busy) {
+  elements.syncNow.disabled = busy || !syncEnabled;
+  elements.exportData.disabled = busy;
+  elements.importData.disabled = busy;
+  elements.syncEnabled.disabled = busy;
+}
+
+function syncChunkKey(version, index) {
+  return `${SYNC_CHUNK_PREFIX}.${version}.${index}`;
+}
+
+async function readSyncSnapshot() {
+  const storedMeta = await chrome.storage.sync.get(SYNC_META_KEY);
+  const meta = storedMeta[SYNC_META_KEY];
+  if (!meta) return null;
+
+  if (
+    meta.format !== portableStore.FORMAT
+    || meta.namespace !== portableStore.NAMESPACE
+    || meta.schemaVersion !== portableStore.SCHEMA_VERSION
+    || typeof meta.version !== "string"
+    || !/^[a-zA-Z0-9-]{1,100}$/.test(meta.version)
+    || !Number.isInteger(meta.chunkCount)
+    || meta.chunkCount < 1
+    || meta.chunkCount > 100
+    || !Number.isFinite(Number(meta.updatedAt))
+  ) {
+    throw new Error("雲端存檔格式無效");
+  }
+
+  const keys = Array.from({ length: meta.chunkCount }, (_, index) => syncChunkKey(meta.version, index));
+  const chunks = await chrome.storage.sync.get(keys);
+  const serialized = keys.map((key) => chunks[key]);
+  if (serialized.some((chunk) => typeof chunk !== "string")) throw new Error("雲端存檔缺少資料區塊");
+
+  const joined = serialized.join("");
+  if (portableStore.hashString(joined) !== meta.checksum) throw new Error("雲端存檔校驗失敗");
+
+  let backup;
+  try {
+    backup = JSON.parse(joined);
+  } catch {
+    throw new Error("雲端存檔不是有效的 JSON");
+  }
+
+  return {
+    data: portableStore.parseBackup(backup),
+    updatedAt: Number(meta.updatedAt),
+    deviceId: String(meta.deviceId || "")
+  };
+}
+
+async function writeSyncSnapshot(data, updatedAt, deviceId) {
+  const backup = portableStore.createBackup(data, updatedAt);
+  const serialized = JSON.stringify(backup);
+  const chunks = portableStore.splitForSync(serialized);
+  const safeDeviceId = String(deviceId).replace(/[^a-zA-Z0-9-]/g, "").slice(0, 48) || "device";
+  const version = `${updatedAt}-${safeDeviceId}`;
+  const oldMeta = (await chrome.storage.sync.get(SYNC_META_KEY))[SYNC_META_KEY];
+  const chunkData = Object.fromEntries(chunks.map((chunk, index) => [syncChunkKey(version, index), chunk]));
+  const estimatedBytes = Object.entries(chunkData).reduce(
+    (total, [key, value]) => total + new TextEncoder().encode(key).byteLength + portableStore.encodedStorageBytes(value),
+    0
+  );
+  if (estimatedBytes > MAX_SYNC_SNAPSHOT_BYTES) {
+    throw new Error("追蹤資料超過瀏覽器同步容量，請改用匯出檔案");
+  }
+
+  const activeVersion = typeof oldMeta?.version === "string" ? oldMeta.version : "";
+  const allSyncItems = await chrome.storage.sync.get(null);
+  const orphanKeys = Object.keys(allSyncItems).filter((key) => {
+    const prefix = `${SYNC_CHUNK_PREFIX}.`;
+    if (!key.startsWith(prefix) || key.startsWith(`${prefix}${activeVersion}.`)) return false;
+    const versionTimestamp = Number(key.slice(prefix.length).match(/^(\d+)-/)?.[1]);
+    return !Number.isFinite(versionTimestamp) || versionTimestamp < Date.now() - 60_000;
+  });
+  if (orphanKeys.length) await chrome.storage.sync.remove(orphanKeys);
+
+  await chrome.storage.sync.set(chunkData);
+  await chrome.storage.sync.set({
+    [SYNC_META_KEY]: {
+      format: portableStore.FORMAT,
+      namespace: portableStore.NAMESPACE,
+      schemaVersion: portableStore.SCHEMA_VERSION,
+      version,
+      chunkCount: chunks.length,
+      checksum: portableStore.hashString(serialized),
+      updatedAt,
+      deviceId: safeDeviceId
+    }
+  });
+
+  if (
+    typeof oldMeta?.version === "string"
+    && /^[a-zA-Z0-9-]{1,100}$/.test(oldMeta.version)
+    && oldMeta.version !== version
+    && Number.isInteger(oldMeta.chunkCount)
+    && oldMeta.chunkCount > 0
+    && oldMeta.chunkCount <= 100
+  ) {
+    const staleKeys = Array.from({ length: oldMeta.chunkCount }, (_, index) => syncChunkKey(oldMeta.version, index));
+    await chrome.storage.sync.remove(staleKeys);
+  }
+}
+
+function queuePortableSync() {
+  pendingSyncWrite = {
+    snapshot: getPortableData(),
+    updatedAt: portableUpdatedAt,
+    deviceId: portableDeviceId
+  };
+  setSyncStatus("等待同步…");
+  window.clearTimeout(syncWriteTimer);
+  syncWriteTimer = window.setTimeout(() => {
+    const write = pendingSyncWrite;
+    pendingSyncWrite = null;
+    syncWriteChain = syncWriteChain
+      .catch(() => {})
+      .then(() => writeSyncSnapshot(write.snapshot, write.updatedAt, write.deviceId))
+      .then(() => setSyncStatus("已同步最新存檔", "success"))
+      .catch((error) => setSyncStatus(`同步失敗：${error.message}`, "error"));
+  }, 250);
+}
+
+async function applyPortableData(data, updatedAt) {
+  const normalized = portableStore.normalizePortableData(data);
+  const previous = getPortableData();
+  const previousUpdatedAt = portableUpdatedAt;
+  applyingRemoteState = true;
+  try {
+    abortAllQuoteRequests();
+    trackedQuotes = normalized.trackedQuotes;
+    quotePages = normalized.quotePages;
+    currentPageId = normalized.currentPageId;
+    pageNames = normalized.pageNames;
+    preferredSite = normalized.preferredSite;
+    portableUpdatedAt = updatedAt;
+    elements.stockSite.value = preferredSite;
+    elements.pageName.value = pageNames[currentPageId] || "";
+    await clearIconBadge().catch(() => {});
+    await saveTrackedQuotes({ touch: false, queueSync: false });
+    renderTrackedQuotes();
+    restartPolling();
+  } catch (error) {
+    trackedQuotes = previous.trackedQuotes;
+    quotePages = previous.quotePages;
+    currentPageId = previous.currentPageId;
+    pageNames = previous.pageNames;
+    preferredSite = previous.preferredSite;
+    portableUpdatedAt = previousUpdatedAt;
+    elements.stockSite.value = preferredSite;
+    elements.pageName.value = pageNames[currentPageId] || "";
+    await saveTrackedQuotes({ touch: false, queueSync: false }).catch(() => {});
+    renderTrackedQuotes();
+    restartPolling();
+    throw error;
+  } finally {
+    applyingRemoteState = false;
+  }
+}
+
+async function applyNewerRemoteSnapshot() {
+  if (!syncEnabled || applyingRemoteState) return;
+  try {
+    const remote = await readSyncSnapshot();
+    if (!remote || remote.updatedAt <= portableUpdatedAt || remote.deviceId === portableDeviceId) return;
+    await applyPortableData(remote.data, remote.updatedAt);
+    setSyncStatus("已收到另一台裝置的最新存檔", "success");
+  } catch (error) {
+    setSyncStatus(`讀取雲端更新失敗：${error.message}`, "error");
+  }
+}
+
+async function reconcilePortableSync() {
+  setSyncBusy(true);
+  setSyncStatus("正在比對本機與雲端存檔…");
+  try {
+    const remote = await readSyncSnapshot();
+    if (remote && (!syncJoined || remote.updatedAt > portableUpdatedAt)) {
+      syncJoined = true;
+      await applyPortableData(remote.data, remote.updatedAt);
+      await chrome.storage.local.set({ syncJoined: true });
+      setSyncStatus("已套用較新的雲端存檔", "success");
+      return;
+    }
+
+    if (!portableUpdatedAt) {
+      portableUpdatedAt = Date.now();
+      await saveTrackedQuotes({ touch: false, queueSync: false });
+    }
+    await writeSyncSnapshot(getPortableData(), portableUpdatedAt, portableDeviceId);
+    syncJoined = true;
+    await chrome.storage.local.set({ syncJoined: true });
+    setSyncStatus(remote ? "本機已是最新版本" : "已建立雲端存檔", "success");
+  } catch (error) {
+    setSyncStatus(`同步失敗：${error.message}`, "error");
+  } finally {
+    setSyncBusy(false);
+  }
+}
+
+function downloadPortableBackup() {
+  const backup = portableStore.createBackup(getPortableData());
+  const blob = new Blob([`${JSON.stringify(backup, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `stockticker-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
+async function importPortableBackup(file) {
+  if (file.size > MAX_IMPORT_BYTES) throw new Error("匯入檔案超過 1 MB");
+  if (file.name && !file.name.toLowerCase().endsWith(".json") && file.type !== "application/json") {
+    throw new Error("請選擇 JSON 存檔");
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    throw new Error("匯入檔案不是有效的 JSON");
+  }
+
+  const data = portableStore.parseBackup(payload);
+  const importedAt = Date.now();
+  await applyPortableData(data, importedAt);
+  if (syncEnabled) queuePortableSync();
 }
 
 function getCurrentPageQuotes() {
@@ -859,7 +1138,52 @@ elements.settingsToggle.addEventListener("click", () => {
 
 elements.stockSite.addEventListener("change", async () => {
   preferredSite = elements.stockSite.value === "wantgoo" ? "wantgoo" : "yahoo";
-  await chrome.storage.local.set({ preferredSite });
+  await saveTrackedQuotes();
+});
+
+elements.syncEnabled.addEventListener("change", async () => {
+  syncEnabled = elements.syncEnabled.checked;
+  await saveTrackedQuotes({ touch: false, queueSync: false });
+  if (syncEnabled) await reconcilePortableSync();
+  else {
+    window.clearTimeout(syncWriteTimer);
+    pendingSyncWrite = null;
+    setSyncBusy(false);
+    setSyncStatus("同步已關閉，資料只儲存在本機");
+  }
+});
+
+elements.syncNow.addEventListener("click", () => {
+  if (syncEnabled) void reconcilePortableSync();
+});
+
+elements.exportData.addEventListener("click", () => {
+  try {
+    downloadPortableBackup();
+    setSyncStatus("跨平台存檔已匯出", "success");
+  } catch (error) {
+    setSyncStatus(`匯出失敗：${error.message}`, "error");
+  }
+});
+
+elements.importData.addEventListener("click", () => {
+  elements.importFile.value = "";
+  elements.importFile.click();
+});
+
+elements.importFile.addEventListener("change", async () => {
+  const file = elements.importFile.files?.[0];
+  if (!file) return;
+  setSyncBusy(true);
+  setSyncStatus("正在驗證並匯入存檔…");
+  try {
+    await importPortableBackup(file);
+    setSyncStatus("存檔匯入完成，原有設定已安全替換", "success");
+  } catch (error) {
+    setSyncStatus(`匯入失敗：${error.message}；原有資料未變更`, "error");
+  } finally {
+    setSyncBusy(false);
+  }
 });
 
 function saveCurrentPageName() {
@@ -969,6 +1293,10 @@ elements.quoteList.addEventListener("pointercancel", () => {
   dragBlocked = false;
 });
 
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "sync" && changes[SYNC_META_KEY]) void applyNewerRemoteSnapshot();
+});
+
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") restartPolling();
 });
@@ -979,6 +1307,10 @@ async function initialize() {
     "quotePages",
     "currentPageId",
     "pageNames",
+    "portableUpdatedAt",
+    "portableDeviceId",
+    "syncEnabled",
+    "syncJoined",
     "symbol",
     "companyName",
     "preferredSite"
@@ -1013,12 +1345,26 @@ async function initialize() {
     .filter((quote, index, list) => quote.symbol && list.findIndex((item) => item.symbol === quote.symbol) === index);
 
   preferredSite = stored.preferredSite === "wantgoo" ? "wantgoo" : "yahoo";
+  const savedUpdatedAt = Number(stored.portableUpdatedAt);
+  portableUpdatedAt = Number.isFinite(savedUpdatedAt) && savedUpdatedAt > 0 ? savedUpdatedAt : Date.now();
+  const savedDeviceId = typeof stored.portableDeviceId === "string"
+    ? stored.portableDeviceId.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 48)
+    : "";
+  portableDeviceId = savedDeviceId || (crypto.randomUUID?.() || `device-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  syncEnabled = Boolean(stored.syncEnabled);
+  syncJoined = Boolean(stored.syncJoined);
   elements.stockSite.value = preferredSite;
   elements.pageName.value = pageNames[currentPageId] || "";
+  elements.syncEnabled.checked = syncEnabled;
   elements.symbolInput.value = "";
-  await saveTrackedQuotes();
+  await saveTrackedQuotes({ touch: false, queueSync: false });
   renderTrackedQuotes();
   restartPolling();
+  if (syncEnabled) await reconcilePortableSync();
+  else {
+    setSyncBusy(false);
+    setSyncStatus("資料目前只儲存在本機");
+  }
 }
 
 initialize();

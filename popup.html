@@ -34,6 +34,24 @@
         <p>玩股網僅用於台股，其他市場會自動改用 Yahoo。</p>
         <label class="page-name-label" for="pageName">目前分頁名稱（最多 3 字）</label>
         <input id="pageName" type="text" placeholder="留空顯示頁碼" autocomplete="off" />
+
+        <div class="sync-section">
+          <label class="sync-toggle" for="syncEnabled">
+            <span>
+              <strong>跨裝置同步</strong>
+              <small>同一瀏覽器帳號的 Chrome 或 Edge 裝置</small>
+            </span>
+            <input id="syncEnabled" type="checkbox" />
+          </label>
+          <p class="sync-status" id="syncStatus">資料目前只儲存在本機</p>
+          <div class="sync-actions">
+            <button type="button" id="syncNow">立即同步</button>
+            <button type="button" id="exportData">匯出</button>
+            <button type="button" id="importData">匯入</button>
+            <input type="file" id="importFile" accept=".json,application/json" hidden />
+          </div>
+          <p>Chrome 與 Edge 帳號不互通；請用匯出／匯入交換 JSON 存檔。</p>
+        </div>
       </section>
 
       <form id="symbolForm" autocomplete="off">
@@ -93,6 +111,7 @@
       <footer>每 5 秒自動更新 · 報價 Yahoo Finance · 名稱 TWSE／TPEx</footer>
     </main>
 
+    <script src="portable-store.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
