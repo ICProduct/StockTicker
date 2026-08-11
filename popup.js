@@ -961,7 +961,7 @@ function renderQuote(card, quote, meta, companyName, chartResult) {
     second: "2-digit",
     hour12: false
   }).format(new Date());
-  void updateIconBadge(quote, price, direction, meta.currency || "", companyName).catch(() => {});
+  return { price, direction };
 }
 
 async function fetchQuote(quote) {
@@ -992,7 +992,9 @@ async function fetchQuote(quote) {
       throw new Error(chart?.error?.description || "找不到這個股票代號");
     }
 
-    renderQuote(card, quote, meta, await resolveCompanyName(quote, meta), chart.result[0]);
+    const companyName = await resolveCompanyName(quote, meta);
+    const rendered = renderQuote(card, quote, meta, companyName, chart.result[0]);
+    await updateIconBadge(quote, rendered.price, rendered.direction, meta.currency || "", companyName);
     return { ok: true };
   } catch (error) {
     if (error.name === "AbortError") return { ok: false, aborted: true };
