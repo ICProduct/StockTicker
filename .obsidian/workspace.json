@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/Chrome-Web-Store-上架必填資料.md",
-                "mode": "source",
+                "file": "docs/隱私權政策.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Chrome-Web-Store-上架必填資料"
+              "title": "隱私權政策"
             }
           }
         ],
@@ -230,6 +230,8 @@
   },
   "active": "6d429696e234edb3",
   "lastOpenFiles": [
+    "docs/Chrome-Web-Store-上架必填資料.md",
+    "docs/隱私權政策.md",
     "icon/sample.png",
     "Unity-Cocos-代理人協作指南.md",
     "GPT代理人使用指南.md",
@@ -274,8 +276,6 @@
     "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/Sourcetree 操作[不建議使用].md",
     "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/Sourcetree 安裝[不建議使用].md",
     "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/SourceGit - 新增專案.md",
-    "Extrafiles/files/Pasted image 20260804094550.png",
-    "網銀北分特效組/技術文件/Cocos/COCOS   圓筒狀不會互蓋又可以有前後關係的設置.md",
-    "Extrafiles/files/描圖紙說明教學2.png"
+    "Extrafiles/files/Pasted image 20260804094550.png"
   ]
 }
