@@ -39,10 +39,14 @@
             "id": "6d429696e234edb3",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "docs/Chrome-Web-Store-上架必填資料.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "新分頁"
+              "title": "Chrome-Web-Store-上架必填資料"
             }
           }
         ],
