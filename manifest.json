@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "5 秒股價追蹤器",
-  "version": "1.1.0",
-  "key" :"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApv3xBeoG2Wv0QIRABQSsLqt7jArQm9OzToDTPQFxuSBQ+gszqGFhNwkB8VottrFM7Uh5xi+QsjtiDlHKqn2SltZgnMxjYoFDo0G1b8LGlTukk4s018+3pRAyO5kabjDfAh6VRrdrKXNU5Zgpm4FCy4cE9FXzCzR1y5xrJ8TfNW2V1EZyr2fQDpvK/Uu069huCUgqxrpH8Apeq64ZdOyDwuM8Um2Nea5FWDVWi0R4qfecE97l1ICMOupk+HI9bIm3ejRPeZStHAaLu6XpDpFaxPJPElfx8BpDpgP00HtOrCFVm/HuLf3vobI4DdNCXwQImi8UVgbF7PO3fuu5WjoGvQIDAQAB",
+  "name": "上班偷偷看股票",
+  "version": "1.2.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApv3xBeoG2Wv0QIRABQSsLqt7jArQm9OzToDTPQFxuSBQ+gszqGFhNwkB8VottrFM7Uh5xi+QsjtiDlHKqn2SltZgnMxjYoFDo0G1b8LGlTukk4s018+3pRAyO5kabjDfAh6VRrdrKXNU5Zgpm4FCy4cE9FXzCzR1y5xrJ8TfNW2V1EZyr2fQDpvK/Uu069huCUgqxrpH8Apeq64ZdOyDwuM8Um2Nea5FWDVWi0R4qfecE97l1ICMOupk+HI9bIm3ejRPeZStHAaLu6XpDpFaxPJPElfx8BpDpgP00HtOrCFVm/HuLf3vobI4DdNCXwQImi8UVgbF7PO3fuu5WjoGvQIDAQAB",
   "description": "每 5 秒更新一次指定股票的即時報價。",
   "permissions": ["storage"],
+  "icons": {
+    "16": "icon/16.png",
+    "32": "icon/32.png",
+    "64": "icon/64.png",
+    "128": "icon/128.png"
+  },
   "host_permissions": [
     "https://query1.finance.yahoo.com/*",
     "https://query2.finance.yahoo.com/*",
@@ -12,7 +18,11 @@
     "https://www.tpex.org.tw/*"
   ],
   "action": {
-    "default_title": "股價追蹤器",
-    "default_popup": "popup.html"
+    "default_title": "上班偷偷看股票",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon/16.png",
+      "32": "icon/32.png"
+    }
   }
 }

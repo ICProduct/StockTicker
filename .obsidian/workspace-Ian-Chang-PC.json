@@ -1,0 +1,257 @@
+{
+  "main": {
+    "id": "fbc94c966c0358d3",
+    "type": "split",
+    "children": [
+      {
+        "id": "94ac76883e91c2da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d90be101f6d51886",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "網銀北分特效組/專案資訊/血夜2/血月2特效製作.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "血月2特效製作"
+            }
+          },
+          {
+            "id": "e8e779e777c4cd91",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "網銀北分特效組/專案資訊/血夜2/血月2.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "血月2"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "6e79a02aa110843f",
+    "type": "split",
+    "children": [
+      {
+        "id": "933330f5fdb8e0cb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0360548613376310",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "檔案瀏覽器"
+            }
+          },
+          {
+            "id": "2c147a70238a1dd3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜尋"
+            }
+          },
+          {
+            "id": "13fa664060d14c42",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "書籤"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "db31fff13209e2ed",
+    "type": "split",
+    "children": [
+      {
+        "id": "c95d25b6dcb79e97",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "901a371910b0703c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "網銀北分特效組/專案資訊/血夜2/血月2特效製作.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "血月2特效製作 的反向連結"
+            }
+          },
+          {
+            "id": "f2c54bebdf755988",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "網銀北分特效組/專案資訊/血夜2/血月2特效製作.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "血月2特效製作 的對外連結"
+            }
+          },
+          {
+            "id": "4302686aeb49b88b",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "標籤"
+            }
+          },
+          {
+            "id": "75ed89f36aac5997",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "所有屬性"
+            }
+          },
+          {
+            "id": "3cbe8f08f0ba72c6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "網銀北分特效組/專案資訊/血夜2/血月2特效製作.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "血月2特效製作 的大綱"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:開啟快速切換": false,
+      "graph:查看關聯圖": false,
+      "canvas:建立新畫布": false,
+      "daily-notes:開啟今天的每日筆記": false,
+      "templates:插入模板": false,
+      "command-palette:開啟命令面板": false,
+      "workspaces:管理工作區配置": false,
+      "bases:建立新的 base": false,
+      "obsidian-git:Open Git source control": false,
+      "obsidian-importer:Open Importer": false,
+      "templater-obsidian:Templater": false
+    }
+  },
+  "active": "e8e779e777c4cd91",
+  "lastOpenFiles": [
+    "Extrafiles/files/Pasted image 20260806111520.png",
+    "網銀北分特效組/專案資訊/血夜2/血夜2 基本資料.md",
+    "網銀北分特效組/專案資訊/血夜2/血月2.md",
+    "網銀北分特效組/專案資訊/血夜2/血月2特效製作.md",
+    "conflict-files-obsidian-git.md",
+    "2026-08-06.md",
+    "未命名.canvas",
+    "網銀北分特效組/專案資訊/AM_拳下星城/Panel移植為Board的流程.md",
+    "Extrafiles/files/Pasted image 20260804174208.png",
+    "Extrafiles/files/Pasted image 20260804174018.png",
+    "Extrafiles/files/Pasted image 20260804151819.png",
+    "Extrafiles/files/Pasted image 20260804114215.png",
+    "Extrafiles/files/Pasted image 20260804095132.png",
+    "網銀北分特效組/技術文件/PhotoShop/使用Photoshop 來手繪動畫.md",
+    "網銀北分特效組/專案資訊/Perforce/Perforce的操作.md",
+    "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/SourceGit - 安裝軟體.md",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit/SourceGit.exe",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit/libSkiaSharp.dll",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit/libonigwrap.dll",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit/libHarfBuzzSharp.dll",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit/av_libglesv2.dll",
+    "Extrafiles/files/sourcegit_2026.16.win-x64/SourceGit",
+    "Extrafiles/files/sourcegit_2026.16.win-x64",
+    "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/Sourcetree 操作[不建議使用].md",
+    "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/Sourcetree 安裝[不建議使用].md",
+    "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/SourceGit - 新增專案.md",
+    "Extrafiles/files/Pasted image 20260804094550.png",
+    "網銀北分特效組/技術文件/PhotoShop",
+    "網銀北分特效組/技術文件/Cocos/COCOS   圓筒狀不會互蓋又可以有前後關係的設置.md",
+    "網銀北分特效組/技術文件/3dsMAX/Tyflow詳細解說.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/防護罩(未完).md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/專案內容 - 鯊6.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/坐艙駕駛員製作流程.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/世界大戰的過場loading影片.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/Shader小魚動作.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/FISH6 世界大戰.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰/Boss擊倒影片匯入流程.md",
+    "網銀北分特效組/專案資訊/FISH6_世界大戰",
+    "Extrafiles/files/描圖紙說明教學2.png",
+    "Extrafiles/files/描圖紙說明教學2 2.png",
+    "Extrafiles/files/描圖紙說明教學2 1.png",
+    "Extrafiles/files/Tornado_B.gif",
+    "Extrafiles/files/Tornado.mp4",
+    "網銀北分特效組/技術文件/共通知識/UV 與貼圖的映射關係.md",
+    "網銀北分特效組/技術文件/Unity/Unity Techunity particle shape loop 配置設定.md",
+    "網銀北分特效組/技術文件/Git、SourceTree、SourceGit/Git指令筆記.md",
+    "網銀北分特效組/技術文件/Shader/BlendMode 混合模式釋義.md"
+  ]
+}

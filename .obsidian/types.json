@@ -1,0 +1,9 @@
+{
+  "types": {
+    "aliases": "aliases",
+    "cssclasses": "multitext",
+    "tags": "tags",
+    "最後更新時間": "multitext",
+    "使用引擎": "multitext"
+  }
+}

@@ -1,11 +1,13 @@
 const UPDATE_INTERVAL_MS = 5_000;
 const DEFAULT_SYMBOL = "2330.TW";
 const LISTINGS_CACHE_MS = 24 * 60 * 60 * 1_000;
+const LISTINGS_CACHE_VERSION = 2;
 const SYNC_META_KEY = "stockticker.sync.meta";
 const SYNC_CHUNK_PREFIX = "stockticker.sync.chunk";
 const MAX_IMPORT_BYTES = 1024 * 1024;
 const MAX_SYNC_SNAPSHOT_BYTES = 45_000;
 const portableStore = globalThis.StockTickerPortable;
+const searchUtils = globalThis.StockTickerSearch;
 
 const elements = {
   form: document.querySelector("#symbolForm"),
@@ -85,7 +87,7 @@ function formatBadgePrice(value) {
 async function clearIconBadge() {
   await Promise.all([
     chrome.action.setBadgeText({ text: "" }),
-    chrome.action.setTitle({ title: "股價追蹤器" })
+    chrome.action.setTitle({ title: "上班偷偷看股票" })
   ]);
 }
 
@@ -212,22 +214,27 @@ function renderSearchResults(results) {
   elements.symbolInput.setAttribute("aria-expanded", "true");
 }
 
-function compactListing(symbol, shortname, longname, exchange) {
+function compactListing(symbol, shortname, longname, exchange, quoteType = "EQUITY") {
   return {
     symbol,
     shortname: String(shortname || "").trim(),
     longname: String(longname || "").trim(),
     exchDisp: exchange,
-    quoteType: "EQUITY"
+    quoteType
   };
 }
 
 async function loadTaiwanListings() {
   if (taiwanListings) return taiwanListings;
 
-  const cached = await chrome.storage.local.get(["taiwanListings", "taiwanListingsUpdatedAt"]);
+  const cached = await chrome.storage.local.get([
+    "taiwanListings",
+    "taiwanListingsUpdatedAt",
+    "taiwanListingsVersion"
+  ]);
   const cacheIsFresh =
     Array.isArray(cached.taiwanListings) &&
+    cached.taiwanListingsVersion === LISTINGS_CACHE_VERSION &&
     Date.now() - Number(cached.taiwanListingsUpdatedAt) < LISTINGS_CACHE_MS;
 
   if (cacheIsFresh) {
@@ -257,7 +264,33 @@ async function loadTaiwanListings() {
         row.CompanyAbbreviation,
         row.CompanyName,
         "證券櫃檯買賣中心"
-      )))
+      ))),
+    fetch("https://openapi.twse.com.tw/v1/opendata/t187ap47_L", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`TWSE ETF ${response.status}`);
+        return response.json();
+      })
+      .then((rows) => rows.map((row) => compactListing(
+        `${row["基金代號"]}.TW`,
+        row["基金簡稱"],
+        row["基金中文名稱"],
+        "台灣證券交易所 · ETF",
+        "ETF"
+      ))),
+    fetch("https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error(`TPEx ETF ${response.status}`);
+        return response.json();
+      })
+      .then((rows) => rows
+        .filter((row) => /^00[A-Z0-9]{4}$/i.test(String(row.SecuritiesCompanyCode || "")))
+        .map((row) => compactListing(
+          `${row.SecuritiesCompanyCode}.TWO`,
+          row.CompanyName,
+          row.CompanyName,
+          "證券櫃檯買賣中心 · ETF",
+          "ETF"
+        )))
   ]);
 
   taiwanListings = sources
@@ -276,7 +309,8 @@ async function loadTaiwanListings() {
 
   await chrome.storage.local.set({
     taiwanListings,
-    taiwanListingsUpdatedAt: Date.now()
+    taiwanListingsUpdatedAt: Date.now(),
+    taiwanListingsVersion: LISTINGS_CACHE_VERSION
   });
   return taiwanListings;
 }
@@ -298,7 +332,11 @@ async function searchTaiwanCompanies(query) {
       return { quote, score };
     })
     .filter((match) => match.score > 0)
-    .sort((a, b) => b.score - a.score || a.quote.shortname.length - b.quote.shortname.length)
+    .sort((a, b) =>
+      b.score - a.score
+      || searchUtils.marketPriority(a.quote.symbol) - searchUtils.marketPriority(b.quote.symbol)
+      || a.quote.shortname.length - b.quote.shortname.length
+    )
     .slice(0, 8)
     .map((match) => match.quote);
 }
@@ -322,7 +360,7 @@ async function searchSymbols(query) {
 
     const params = new URLSearchParams({
       q: searchTerm,
-      quotesCount: "8",
+      quotesCount: "20",
       newsCount: "0",
       enableFuzzyQuery: "false"
     });
@@ -334,9 +372,16 @@ async function searchSymbols(query) {
     if (!response.ok) throw new Error(`搜尋服務回傳 ${response.status}`);
 
     const payload = await response.json();
-    const results = (payload.quotes || [])
-      .filter((quote) => quote.symbol && ["EQUITY", "ETF"].includes(quote.quoteType))
-      .slice(0, 8);
+    let results = (payload.quotes || [])
+      .filter((quote) => quote.symbol && ["EQUITY", "ETF"].includes(quote.quoteType));
+    if (results.some((quote) => /\.(TW|TWO)$/i.test(quote.symbol))) {
+      try {
+        results = searchUtils.applyTaiwanNames(results, await loadTaiwanListings());
+      } catch {
+        // 官方中文名稱暫時無法取得時，仍保留 Yahoo 搜尋結果。
+      }
+    }
+    results = searchUtils.prioritizeTaiwanSymbols(results).slice(0, 8);
     renderSearchResults(results);
   } catch (error) {
     if (error.name !== "AbortError") {

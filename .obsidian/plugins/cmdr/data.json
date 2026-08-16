@@ -1,0 +1,58 @@
+{
+  "confirmDeletion": true,
+  "showAddCommand": true,
+  "debug": false,
+  "editorMenu": [
+    {
+      "id": "templater-obsidian:Extrafiles/Template/複製這個文件的連結.md",
+      "icon": "lucide-share",
+      "name": "Templater: Insert 複製這個文件的連結",
+      "mode": "any"
+    }
+  ],
+  "fileMenu": [
+    {
+      "id": "templater-obsidian:insert-templater",
+      "icon": "templater-icon",
+      "name": "Templater: Open insert template modal",
+      "mode": "any"
+    }
+  ],
+  "leftRibbon": [],
+  "rightRibbon": [],
+  "titleBar": [],
+  "statusBar": [
+    {
+      "id": "obsidian-git:push",
+      "icon": "lucide-folder-sync",
+      "name": "Git: Commit-and-sync",
+      "mode": "any"
+    }
+  ],
+  "pageHeader": [
+    {
+      "id": "obsidian-git:push",
+      "icon": "sync-small",
+      "name": "Git: Commit-and-sync",
+      "mode": "any"
+    }
+  ],
+  "macros": [],
+  "explorer": [],
+  "textToolbarCommands": [],
+  "hide": {
+    "statusbar": [],
+    "leftRibbon": []
+  },
+  "spacing": 8,
+  "advancedToolbar": {
+    "rowHeight": 48,
+    "rowCount": 1,
+    "spacing": 0,
+    "buttonWidth": 48,
+    "columnLayout": false,
+    "mappedIcons": [],
+    "tooltips": false,
+    "heightOffset": 0
+  }
+}

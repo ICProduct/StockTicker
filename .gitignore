@@ -1,0 +1,7 @@
+node_modules/
+build/*.zip
+build/*.sha256.txt
+extension-release.zip
+*.log
+.DS_Store
+Thumbs.db

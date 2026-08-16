@@ -1,4 +1,16 @@
 {
+  "name": "stockticker-extension",
+  "version": "1.2.0",
+  "private": true,
+  "description": "Build tooling for the StockTicker browser extension.",
+  "scripts": {
+    "test": "node --check popup.js && node --check portable-store.js && node --check search-utils.js && node --test tests/*.test.js",
+    "prebuild": "npm test",
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "archiver": "^8.0.0"
   }

@@ -1,0 +1,11 @@
+{
+  "templater-obsidian:Extrafiles/Template/分享連結.md": [
+    {
+      "modifiers": [
+        "Mod",
+        "Shift"
+      ],
+      "key": "C"
+    }
+  ]
+}
